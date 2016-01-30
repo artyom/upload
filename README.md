@@ -6,6 +6,8 @@ each command call new randomly-named remote subdirectory is created.
 		ssh host:port (default "localhost:22")
 	  -dir string
 		remote directory to upload files to (default "/tmp")
+	  -long
+		generate long subdirectory name
 	  -url string
 		remote url base to open after upload
 	  -user string

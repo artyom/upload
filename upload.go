@@ -29,6 +29,7 @@ func main() {
 		Addr string `flag:"addr,ssh host:port"`
 		Dir  string `flag:"dir,remote directory to upload files to"`
 		Url  string `flag:"url,remote url base to open after upload"`
+		Long bool   `flag:"long,generate long subdirectory name"`
 	}{
 		User: os.Getenv("USER"),
 		Addr: "localhost:22",
@@ -41,7 +42,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	res, err := upload(params.Addr, params.Dir, cfg, flag.Args())
+	res, err := upload(params.Addr, params.Dir, params.Long, cfg, flag.Args())
 	if res != "" {
 		fmt.Println(res)
 		if params.Url != "" {
@@ -53,7 +54,7 @@ func main() {
 	}
 }
 
-func upload(addr, dir string, config *ssh.ClientConfig, files []string) (string, error) {
+func upload(addr, dir string, long bool, config *ssh.ClientConfig, files []string) (string, error) {
 	if len(files) == 0 {
 		return "", errors.New("nothing to upload")
 	}
@@ -80,10 +81,19 @@ func upload(addr, dir string, config *ssh.ClientConfig, files []string) (string,
 		return "", errors.New("destination path is not a directory")
 	}
 	var dst string
-	for b, i := randBytes(), 1; i < len(b); i++ {
-		dst = path.Join(dir, fmt.Sprintf("%x", b[:i]))
-		if err = sc.Mkdir(dst); err == nil {
-			break
+	if long {
+		for i := 0; i < 3; i++ {
+			dst = path.Join(dir, fmt.Sprintf("%x", randBytes()))
+			if err = sc.Mkdir(dst); err == nil {
+				break
+			}
+		}
+	} else {
+		for b, i := randBytes(), 1; i < len(b); i++ {
+			dst = path.Join(dir, fmt.Sprintf("%x", b[:i]))
+			if err = sc.Mkdir(dst); err == nil {
+				break
+			}
 		}
 	}
 	if err != nil {
